@@ -1,0 +1,33 @@
+.TH HSH 1 "December 2025" "1.0" "Simple Shell Manual"
+.SH NAME
+hsh \- simple command interpreter
+.SH SYNOPSIS
+.B hsh
+.SH DESCRIPTION
+.B hsh
+is a simple command line interpreter. It displays a prompt and waits for commands.
+.PP
+Commands must include the full path (like /bin/ls).
+.SH USAGE
+Run the shell:
+.PP
+.RS
+./hsh
+.RE
+.PP
+Type commands with full paths. Press Ctrl+D to exit.
+.SH EXAMPLES
+.PP
+.RS
+($) /bin/ls
+.br
+file1 file2
+.br
+($) /bin/pwd
+.br
+/home/user
+.RE
+.SH AUTHORS
+See AUTHORS file
+.SH SEE ALSO
+sh(1), bash(1), execve(2)
