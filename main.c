@@ -12,7 +12,7 @@ int main(int argc, char *argv[])
 	char *line = NULL;
 	size_t len = 0;
 	ssize_t nread;
-	int line_num = 0;
+	int line_count = 0;
 	int interactive = isatty(STDIN_FILENO);
 
 	(void)argc;
@@ -31,13 +31,13 @@ int main(int argc, char *argv[])
 			break;
 		}
 
-		line_num++;
+		line_count++;
 
 		if (line[nread - 1] == '\n')
 			line[nread - 1] = '\0';
 
 		if (strlen(line) > 0)
-			execute_command(line, argv);
+			execute_command(line, argv, line_count);
 	}
 
 	free(line);
@@ -48,13 +48,13 @@ int main(int argc, char *argv[])
  * execute_command - fork and execute a command
  * @command: the command to execute
  * @argv: program arguments for error messages
+ * @line_count: the current line number
  */
-void execute_command(char *command, char *argv[])
+void execute_command(char *command, char *argv[], int line_count)
 {
 	pid_t pid;
 	int status;
 	char *args[2];
-	static int line_count = 1;
 
 	args[0] = command;
 	args[1] = NULL;
@@ -79,6 +79,5 @@ void execute_command(char *command, char *argv[])
 	else
 	{
 		wait(&status);
-		line_count++;
 	}
 }
