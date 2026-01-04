@@ -13,9 +13,14 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <sys/stat.h>
 
 extern char **environ;
 
 void execute_command(char *command, char *argv[], int line_count);
+char **tokenize(char *line);
+void free_tokens(char **tokens);
+char *find_command(char *command);
+char *malloc_and_copy(char *str);
 
 #endif
