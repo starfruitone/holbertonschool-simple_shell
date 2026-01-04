@@ -1,3 +1,9 @@
+/*
+ * File: shell.h
+ * Auth: Alexander
+ * Desc: Header file for simple UNIX command line interpreter
+ */
+
 #ifndef SHELL_H
 #define SHELL_H
 

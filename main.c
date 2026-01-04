@@ -1,3 +1,9 @@
+/*
+ * File: main.c
+ * Auth: Alexander
+ * Desc: Entry point for a simple UNIX command line interpreter
+ */
+
 #include "shell.h"
 
 /**
