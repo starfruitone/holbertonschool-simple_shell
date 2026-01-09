@@ -1,33 +1,58 @@
-.TH HSH 1 "December 2025" "1.0" "Simple Shell Manual"
+.TH HSH 1 "January 2026" "1.0" "Simple Shell Manual"
 .SH NAME
 hsh \- simple command interpreter
 .SH SYNOPSIS
 .B hsh
 .SH DESCRIPTION
 .B hsh
-is a simple command line interpreter. It displays a prompt and waits for commands.
+is a simple UNIX command line interpreter that reads commands from standard input and executes them.
 .PP
-Commands must include the full path (like /bin/ls).
-.SH USAGE
-Run the shell:
+The shell searches for executables in the directories listed in the PATH environment variable. Full paths and relative paths are also supported.
+.SH INVOCATION
+.B Interactive mode:
+Run
+.B ./hsh
+and type commands at the prompt.
 .PP
-.RS
-./hsh
-.RE
-.PP
-Type commands with full paths. Press Ctrl+D to exit.
+.B Non-interactive mode:
+Pipe commands to the shell, e.g.
+.B echo "ls" | ./hsh
+.SH BUILTINS
+.TP
+.B exit
+Exit the shell.
 .SH EXAMPLES
+.nf
+$ ./hsh
+$ ls
+AUTHORS  hsh  main.c  README.md  shell.h
+$ pwd
+/home/user/simple_shell
+$ /bin/ls -la
+total 48
+drwxr-xr-x 2 user user 4096 Jan 9 12:00 .
+$ echo hello
+hello
+$ exit
+.fi
 .PP
-.RS
-($) /bin/ls
-.br
-file1 file2
-.br
-($) /bin/pwd
-.br
-/home/user
-.RE
+Non-interactive:
+.nf
+$ echo "ls" | ./hsh
+$ echo "pwd" | ./hsh
+.fi
+.SH EXIT STATUS
+Returns 0 on success. Returns 127 if a command is not found.
+.SH ENVIRONMENT
+.TP
+.B PATH
+Colon-separated list of directories to search for commands.
 .SH AUTHORS
-See AUTHORS file
+Alexander Durant <https://github.com/starfruitone>
+.br
+Nano420X <https://github.com/Nano420x>
 .SH SEE ALSO
-sh(1), bash(1), execve(2)
+.BR sh (1),
+.BR bash (1),
+.BR execve (2),
+.BR fork (2)
