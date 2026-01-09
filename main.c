@@ -70,38 +70,18 @@ char *_getenv(char *name)
 }
 
 /**
- * find_command - search for command in PATH
+ * search_path - search directories in PATH for command
  * @command: the command to find
+ * @path_copy: copy of PATH string
  *
  * Return: full path to command, or NULL if not found
  */
-char *find_command(char *command)
+char *search_path(char *command, char *path_copy)
 {
-	char *path_env;
-	char *path_copy;
 	char *dir;
 	char full_path[1024];
 	char *result;
 	struct stat st;
-
-	if (command == NULL)
-		return (NULL);
-
-	if (command[0] == '/' || command[0] == '.')
-	{
-		if (stat(command, &st) == 0)
-			return (command);
-		return (NULL);
-	}
-
-	path_env = _getenv("PATH");
-	if (path_env == NULL)
-		return (NULL);
-
-	path_copy = malloc(strlen(path_env) + 1);
-	if (path_copy == NULL)
-		return (NULL);
-	strcpy(path_copy, path_env);
 
 	dir = strtok(path_copy, ":");
 	while (dir != NULL)
@@ -117,26 +97,53 @@ char *find_command(char *command)
 		}
 		dir = strtok(NULL, ":");
 	}
-
 	free(path_copy);
 	return (NULL);
 }
 
 /**
- * malloc_and_copy - allocate memory and copy a string
- * @str: the string to copy
+ * find_command - search for command in PATH
+ * @command: the command to find
  *
- * Return: pointer to new string
+ * Return: full path to command, or NULL if not found
  */
-char *malloc_and_copy(char *str)
+char *find_command(char *command)
 {
-	char *copy;
+	char *path_env;
+	char *path_copy;
+	struct stat st;
 
-	copy = malloc(strlen(str) + 1);
-	if (copy == NULL)
+	if (command == NULL)
 		return (NULL);
-	strcpy(copy, str);
-	return (copy);
+	if (command[0] == '/' || command[0] == '.')
+	{
+		if (stat(command, &st) == 0)
+			return (command);
+		return (NULL);
+	}
+	path_env = _getenv("PATH");
+	if (path_env == NULL)
+		return (NULL);
+	path_copy = malloc(strlen(path_env) + 1);
+	if (path_copy == NULL)
+		return (NULL);
+	strcpy(path_copy, path_env);
+	return (search_path(command, path_copy));
+}
+
+/**
+ * run_child - execute command in child process
+ * @cmd_path: path to command
+ * @args: argument array
+ * @argv: program arguments for error messages
+ */
+void run_child(char *cmd_path, char **args, char *argv[])
+{
+	if (execve(cmd_path, args, environ) == -1)
+	{
+		fprintf(stderr, "%s: No such file or directory\n", argv[0]);
+		exit(127);
+	}
 }
 
 /**
@@ -154,20 +161,17 @@ void execute_command(char *command, char *argv[], int line_count)
 	int is_allocated;
 
 	(void)line_count;
-
 	args = tokenize(command);
 	if (args == NULL || args[0] == NULL)
 	{
 		free_tokens(args);
 		return;
 	}
-
 	if (strcmp(args[0], "exit") == 0)
 	{
 		free_tokens(args);
 		exit(0);
 	}
-
 	cmd_path = find_command(args[0]);
 	if (cmd_path == NULL)
 	{
@@ -175,11 +179,8 @@ void execute_command(char *command, char *argv[], int line_count)
 		free_tokens(args);
 		return;
 	}
-
 	is_allocated = (cmd_path != args[0]);
-
 	pid = fork();
-
 	if (pid == -1)
 	{
 		perror("fork");
@@ -188,20 +189,10 @@ void execute_command(char *command, char *argv[], int line_count)
 			free(cmd_path);
 		return;
 	}
-
 	if (pid == 0)
-	{
-		if (execve(cmd_path, args, environ) == -1)
-		{
-			fprintf(stderr, "%s: No such file or directory\n", argv[0]);
-			exit(127);
-		}
-	}
+		run_child(cmd_path, args, argv);
 	else
-	{
 		wait(&status);
-	}
-
 	free_tokens(args);
 	if (is_allocated)
 		free(cmd_path);
