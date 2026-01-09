@@ -156,9 +156,9 @@ void execute_command(char *command, char *argv[], int line_count)
 	(void)line_count;
 
 	args = tokenize(command);
-	if (args == NULL)
+	if (args == NULL || args[0] == NULL)
 	{
-		perror("tokenize");
+		free_tokens(args);
 		return;
 	}
 
