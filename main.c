@@ -220,6 +220,12 @@ void execute_command(char *command, char *argv[], int line_count)
 		return;
 	}
 
+	if (strcmp(args[0], "exit") == 0)
+	{
+		free_tokens(args);
+		exit(0);
+	}
+
 	cmd_path = find_command(args[0]);
 	if (cmd_path == NULL)
 	{
