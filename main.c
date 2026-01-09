@@ -1,9 +1,6 @@
-/*
- * File: main.c
- * Auth: Alexander
- * Desc: Entry point for a simple UNIX command line interpreter
+/**
+ * main.c - Simple shell main file
  */
-
 #include "shell.h"
 
 /**
@@ -51,82 +48,25 @@ int main(int argc, char *argv[])
 }
 
 /**
- * tokenize - split a string into tokens
- * @line: the input line to tokenize
+ * _getenv - get environment variable value
+ * @name: name of the variable
  *
- * Return: array of tokens, or NULL on failure
+ * Return: pointer to value, or NULL if not found
  */
-char **tokenize(char *line)
+char *_getenv(char *name)
 {
-	char **tokens;
-	char *token;
-	char *line_copy;
-	int count = 0;
-	int i = 0;
+	int i, len;
 
-	line_copy = malloc(strlen(line) + 1);
-	if (line_copy == NULL)
-		return (NULL);
-	strcpy(line_copy, line);
-
-	token = strtok(line_copy, " ");
-	while (token != NULL)
-	{
-		count++;
-		token = strtok(NULL, " ");
-	}
-
-	free(line_copy);
-
-	tokens = malloc((count + 1) * sizeof(char *));
-	if (tokens == NULL)
+	if (name == NULL)
 		return (NULL);
 
-	line_copy = malloc(strlen(line) + 1);
-	if (line_copy == NULL)
+	len = strlen(name);
+	for (i = 0; environ[i] != NULL; i++)
 	{
-		free(tokens);
-		return (NULL);
+		if (strncmp(environ[i], name, len) == 0 && environ[i][len] == '=')
+			return (environ[i] + len + 1);
 	}
-	strcpy(line_copy, line);
-
-	token = strtok(line_copy, " ");
-	while (token != NULL)
-	{
-		tokens[i] = malloc(strlen(token) + 1);
-		if (tokens[i] == NULL)
-		{
-			free(line_copy);
-			free_tokens(tokens);
-			return (NULL);
-		}
-		strcpy(tokens[i], token);
-		i++;
-		token = strtok(NULL, " ");
-	}
-	tokens[i] = NULL;
-
-	free(line_copy);
-	return (tokens);
-}
-
-/**
- * free_tokens - free an array of tokens
- * @tokens: the token array to free
- */
-void free_tokens(char **tokens)
-{
-	int i = 0;
-
-	if (tokens == NULL)
-		return;
-
-	while (tokens[i] != NULL)
-	{
-		free(tokens[i]);
-		i++;
-	}
-	free(tokens);
+	return (NULL);
 }
 
 /**
@@ -154,7 +94,7 @@ char *find_command(char *command)
 		return (NULL);
 	}
 
-	path_env = getenv("PATH");
+	path_env = _getenv("PATH");
 	if (path_env == NULL)
 		return (NULL);
 
@@ -166,7 +106,7 @@ char *find_command(char *command)
 	dir = strtok(path_copy, ":");
 	while (dir != NULL)
 	{
-		snprintf(full_path, sizeof(full_path), "%s/%s", dir, command);
+		sprintf(full_path, "%s/%s", dir, command);
 		if (stat(full_path, &st) == 0)
 		{
 			result = malloc(strlen(full_path) + 1);

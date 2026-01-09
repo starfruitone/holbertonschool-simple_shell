@@ -1,9 +1,6 @@
-/*
- * File: shell.h
- * Auth: Alexander
- * Desc: Header file for simple UNIX command line interpreter
+/**
+ * shell.h - Header file for simple shell
  */
-
 #ifndef SHELL_H
 #define SHELL_H
 
@@ -21,6 +18,6 @@ void execute_command(char *command, char *argv[], int line_count);
 char **tokenize(char *line);
 void free_tokens(char **tokens);
 char *find_command(char *command);
-char *malloc_and_copy(char *str);
+char *_getenv(char *name);
 
 #endif
