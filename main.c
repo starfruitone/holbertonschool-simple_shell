@@ -23,7 +23,7 @@ int main(int argc, char *argv[])
 	while (1)
 	{
 		if (interactive)
-			write(STDOUT_FILENO, ":) ", 3);
+			write(STDOUT_FILENO, "$ ", 2);
 
 		nread = getline(&line, &len, stdin);
 
@@ -153,6 +153,8 @@ void execute_command(char *command, char *argv[], int line_count)
 	char *cmd_path;
 	int is_allocated;
 
+	(void)line_count;
+
 	args = tokenize(command);
 	if (args == NULL)
 	{
@@ -169,8 +171,7 @@ void execute_command(char *command, char *argv[], int line_count)
 	cmd_path = find_command(args[0]);
 	if (cmd_path == NULL)
 	{
-		fprintf(stderr, "%s: %d: %s: not found\n",
-			argv[0], line_count, args[0]);
+		fprintf(stderr, "%s: No such file or directory\n", argv[0]);
 		free_tokens(args);
 		return;
 	}
@@ -192,8 +193,7 @@ void execute_command(char *command, char *argv[], int line_count)
 	{
 		if (execve(cmd_path, args, environ) == -1)
 		{
-			fprintf(stderr, "%s: %d: %s: not found\n",
-				argv[0], line_count, args[0]);
+			fprintf(stderr, "%s: No such file or directory\n", argv[0]);
 			exit(127);
 		}
 	}
