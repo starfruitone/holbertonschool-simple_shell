@@ -1,3 +1,6 @@
+/**
+ * main.c - Simple shell main file
+ */
 #include "shell.h"
 
 /**
@@ -20,7 +23,7 @@ int main(int argc, char *argv[])
 	while (1)
 	{
 		if (interactive)
-			write(STDOUT_FILENO, "#cisfun$ ", 9);
+			write(STDOUT_FILENO, ":) ", 3);
 
 		nread = getline(&line, &len, stdin);
 
@@ -45,6 +48,98 @@ int main(int argc, char *argv[])
 }
 
 /**
+ * _getenv - get environment variable value
+ * @name: name of the variable
+ *
+ * Return: pointer to value, or NULL if not found
+ */
+char *_getenv(char *name)
+{
+	int i, len;
+
+	if (name == NULL)
+		return (NULL);
+
+	len = strlen(name);
+	for (i = 0; environ[i] != NULL; i++)
+	{
+		if (strncmp(environ[i], name, len) == 0 && environ[i][len] == '=')
+			return (environ[i] + len + 1);
+	}
+	return (NULL);
+}
+
+/**
+ * find_command - search for command in PATH
+ * @command: the command to find
+ *
+ * Return: full path to command, or NULL if not found
+ */
+char *find_command(char *command)
+{
+	char *path_env;
+	char *path_copy;
+	char *dir;
+	char full_path[1024];
+	char *result;
+	struct stat st;
+
+	if (command == NULL)
+		return (NULL);
+
+	if (command[0] == '/' || command[0] == '.')
+	{
+		if (stat(command, &st) == 0)
+			return (command);
+		return (NULL);
+	}
+
+	path_env = _getenv("PATH");
+	if (path_env == NULL)
+		return (NULL);
+
+	path_copy = malloc(strlen(path_env) + 1);
+	if (path_copy == NULL)
+		return (NULL);
+	strcpy(path_copy, path_env);
+
+	dir = strtok(path_copy, ":");
+	while (dir != NULL)
+	{
+		sprintf(full_path, "%s/%s", dir, command);
+		if (stat(full_path, &st) == 0)
+		{
+			result = malloc(strlen(full_path) + 1);
+			if (result != NULL)
+				strcpy(result, full_path);
+			free(path_copy);
+			return (result);
+		}
+		dir = strtok(NULL, ":");
+	}
+
+	free(path_copy);
+	return (NULL);
+}
+
+/**
+ * malloc_and_copy - allocate memory and copy a string
+ * @str: the string to copy
+ *
+ * Return: pointer to new string
+ */
+char *malloc_and_copy(char *str)
+{
+	char *copy;
+
+	copy = malloc(strlen(str) + 1);
+	if (copy == NULL)
+		return (NULL);
+	strcpy(copy, str);
+	return (copy);
+}
+
+/**
  * execute_command - fork and execute a command
  * @command: the command to execute
  * @argv: program arguments for error messages
@@ -54,25 +149,51 @@ void execute_command(char *command, char *argv[], int line_count)
 {
 	pid_t pid;
 	int status;
-	char *args[2];
+	char **args;
+	char *cmd_path;
+	int is_allocated;
 
-	args[0] = command;
-	args[1] = NULL;
+	args = tokenize(command);
+	if (args == NULL)
+	{
+		perror("tokenize");
+		return;
+	}
+
+	if (strcmp(args[0], "exit") == 0)
+	{
+		free_tokens(args);
+		exit(0);
+	}
+
+	cmd_path = find_command(args[0]);
+	if (cmd_path == NULL)
+	{
+		fprintf(stderr, "%s: %d: %s: not found\n",
+			argv[0], line_count, args[0]);
+		free_tokens(args);
+		return;
+	}
+
+	is_allocated = (cmd_path != args[0]);
 
 	pid = fork();
 
 	if (pid == -1)
 	{
 		perror("fork");
+		free_tokens(args);
+		if (is_allocated)
+			free(cmd_path);
 		return;
 	}
 
 	if (pid == 0)
 	{
-		if (execve(command, args, environ) == -1)
+		if (execve(cmd_path, args, environ) == -1)
 		{
 			fprintf(stderr, "%s: %d: %s: not found\n",
-				argv[0], line_count, command);
+				argv[0], line_count, args[0]);
 			exit(127);
 		}
 	}
@@ -80,4 +201,8 @@ void execute_command(char *command, char *argv[], int line_count)
 	{
 		wait(&status);
 	}
+
+	free_tokens(args);
+	if (is_allocated)
+		free(cmd_path);
 }
